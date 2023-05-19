@@ -1,0 +1,11 @@
+const router = require("express").Router();
+const orderController = require("../../controllers/order");
+
+router.post("/add-order", orderController.createOrder);
+router.get("/get-order-data", orderController.get_all_orders);
+router.get("/get-order-data/:id", orderController.get_order_with_id);
+router.get("/paginate-order", orderController.pagnate_order);
+router.get("/search-order", orderController.search_Order);
+router.post("/delete/:id", orderController.delete_order);
+
+module.exports = router;
