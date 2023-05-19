@@ -55,23 +55,20 @@ exports.createOrder = (req, res) => {
 
 exports.get_all_orders = (req, res) => {
   try {
-    // const { orderStatus, paymentMethod, payment } = req.params;
+    const { orderStatus, payment } = req.body;
 
-    // const matchStage = {
-    //   $match: {}
-    // };
+    const matchFilters = {};
 
-    // if (orderStatus) {
-    //   matchStage.$match.orderStatus = orderStatus;
-    // }
+    if (orderStatus && orderStatus.length > 0) {
+      matchFilters.orderStatus = { $in: orderStatus };
+    }
 
-    // if (payment) {
-    //   matchStage.$match.payment = payment;
-    // }
+    if (payment && payment.length > 0) {
+      matchFilters.payment = { $in: payment };
+    }
 
     orderModel
       .aggregate([
-        //matchStage,
         {
           $lookup: {
             from: "users",
@@ -91,7 +88,7 @@ exports.get_all_orders = (req, res) => {
         {
           $lookup: {
             from: "user_addresses",
-            localField: "shipingAddress",
+            localField: "shippingAddress",
             foreignField: "_id",
             as: "shippingAddress",
           },
@@ -112,6 +109,9 @@ exports.get_all_orders = (req, res) => {
             as: "voucher",
           },
         },
+        {
+          $match: matchFilters
+        }
       ])
       .then((data) => {
         res.status(200).send({ msg: "order details", data: data });
