@@ -104,6 +104,14 @@ yarn dev
 ```http
   POST localhost:3000/v1/order/get-order-data
 ```
+#### filter order table
+```http
+  POST localhost:3000/v1/order/get-order-data
+```
+{
+    "orderStatus":["pending","cancelled"],
+    "payment":["Paid","Unpaid"]
+}
 
 #### Get order by Id
 ```http
