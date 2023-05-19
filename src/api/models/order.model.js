@@ -14,6 +14,7 @@ const orderSchema = new mongoose.Schema(
       ref: "users",
     },
     totatlProduct: { type: Number },
+    amount: { type: String },
     orderItems: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "products",
