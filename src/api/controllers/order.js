@@ -22,7 +22,7 @@ exports.createOrder = (req, res) => {
     const {
       orderDate,
       customerDetails,
-      totatlProduct,
+      totalProduct,
       amount,
       orderItems,
       shipingAddress,
@@ -36,7 +36,7 @@ exports.createOrder = (req, res) => {
       orderId,
       orderDate,
       customerDetails,
-      totatlProduct,
+      totalProduct,
       amount,
       orderItems,
       shipingAddress,
