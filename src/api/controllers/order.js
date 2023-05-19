@@ -88,7 +88,7 @@ exports.get_all_orders = (req, res) => {
         {
           $lookup: {
             from: "user_addresses",
-            localField: "shippingAddress",
+            localField: "shipingAddress",
             foreignField: "_id",
             as: "shippingAddress",
           },
@@ -121,7 +121,6 @@ exports.get_all_orders = (req, res) => {
     res.status(500).send({ error: error });
   }
 };
-
 
 exports.get_order_with_id = (req, res) => {
   try {
