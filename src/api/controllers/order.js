@@ -56,6 +56,7 @@ exports.createOrder = (req, res) => {
 exports.get_all_orders = (req, res) => {
   try {
     const { orderStatus, payment } = req.body;
+    const { page, limit } = req.query;
 
     const matchFilters = {};
 
@@ -67,16 +68,11 @@ exports.get_all_orders = (req, res) => {
       matchFilters.payment = { $in: payment };
     }
 
+    const pageNumber = parseInt(page) || 1;
+    const pageSize = parseInt(limit) || 10;
+
     orderModel
       .aggregate([
-        {
-          $lookup: {
-            from: "users",
-            localField: "customerDetails",
-            foreignField: "_id",
-            as: "customer",
-          },
-        },
         {
           $lookup: {
             from: "products",
@@ -88,9 +84,17 @@ exports.get_all_orders = (req, res) => {
         {
           $lookup: {
             from: "user_addresses",
-            localField: "shipingAddress",
+            localField: "shippingAddress",
             foreignField: "_id",
             as: "shippingAddress",
+          },
+        },
+        {
+          $lookup: {
+            from: "user_addresses",
+            localField: "billingAddress",
+            foreignField: "_id",
+            as: "billingAddress",
           },
         },
         {
@@ -110,8 +114,14 @@ exports.get_all_orders = (req, res) => {
           },
         },
         {
-          $match: matchFilters
-        }
+          $match: matchFilters,
+        },
+        {
+          $skip: (pageNumber - 1) * pageSize,
+        },
+        {
+          $limit: pageSize,
+        },
       ])
       .then((data) => {
         res.status(200).send({ msg: "order details", data: data });
@@ -195,32 +205,6 @@ exports.delete_order = (req, res) => {
   }
 };
 
-exports.pagnate_order = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const pageSize = parseInt(req.query.pageSize) || 5;
-
-    const orders = await orderModel
-      .find()
-      .skip((page - 1) * pageSize)
-      .limit(pageSize);
-
-    const totalOrder = await orderModel.countDocuments();
-    const totalPages = Math.ceil(totalOrder / pageSize);
-
-    res.json({
-      orders,
-      pageInfo: {
-        page,
-        pageSize,
-        totalOrder,
-        totalPages,
-      },
-    });
-  } catch (error) {
-    res.send({ error: error });
-  }
-};
 
 exports.search_Order = async (req, res) => {
   try {
