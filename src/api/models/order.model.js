@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const product = require("./products.model");
 const user_address = require("./user_address.model");
 const user = require("../models/user");
-const seller = require("./seller_auth");
+const seller = require("./seller");
 
 const orderSchema = new mongoose.Schema(
   {
