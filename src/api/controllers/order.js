@@ -95,7 +95,7 @@ exports.get_all_orders = (req, res) => {
         },
         {
           $lookup: {
-            from: "seller",
+            from: "sellers",
             localField: "sellerDetails",
             foreignField: "_id",
             as: "seller_details",
