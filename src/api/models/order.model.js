@@ -8,7 +8,10 @@ const orderSchema = new mongoose.Schema(
   {
     orderId: { type: String },
     orderDate: { type: Date, default: Date.now },
-    orderStatus: { type: String, default: "pending" },
+    orderStatus: {
+      type: String,
+      enum: ["pending", "delivered", "cancelled", "shipped"],
+    },
     customerDetails: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
@@ -28,7 +31,7 @@ const orderSchema = new mongoose.Schema(
     },
     payment: {
       type: String,
-      enum: ["Unpaid", "Paid"],
+      enum: ["unpaid", "paid"],
     },
     voucher: {
       type: mongoose.Schema.Types.ObjectId,
