@@ -40,7 +40,7 @@ const orderSchema = new mongoose.Schema(
     },
     sellerDetails: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "seller_auths",
+      ref: "sellers",
     },
     isCancle: {
       type: String,
