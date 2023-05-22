@@ -19,18 +19,18 @@ yarn dev
 ```
 (
   {
-    orderId: { type: String },
+    orderId: { type: String, required: true },
     orderDate: { type: Date, default: Date.now },
     orderStatus: {
       type: String,
       enum: ["pending", "delivered", "cancelled", "shipped"],
     },
-    customerDetails: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
+      requird: true,
     },
     totatlProduct: { type: Number },
-    amount: { type: String },
+    amount: { type: String, required: true },
     orderItems: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "products",
@@ -39,12 +39,17 @@ yarn dev
       type: mongoose.Schema.Types.ObjectId,
       ref: "user_addresses",
     },
+    billingAddress: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user_addresses",
+    },
     paymentMethod: {
       type: String,
+      required: true,
     },
     payment: {
       type: String,
-      enum: ["Unpaid", "Paid"],
+      enum: ["unpaid", "paid"],
     },
     voucher: {
       type: mongoose.Schema.Types.ObjectId,
@@ -53,7 +58,7 @@ yarn dev
     },
     sellerDetails: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "seller_auths",
+      ref: "seller",
     },
     isCancle: {
       type: String,
@@ -65,7 +70,7 @@ yarn dev
     },
   },
   { timestamps: true }
-);
+)
 ```
 
 #### Add User Address
@@ -88,14 +93,15 @@ yarn dev
 ```
 {
     "orderStatus":"delivered",
-    "customerDetails": "6461bde60c87452feccbe337",
+    "userId": "6461bde60c87452feccbe337",
     "totalProduct": "1",
     "amount":"500",
     "orderItems": "6464aeded8fb928dcb0b15a1",
     "shipingAddress": "646362319186750032a80cc8",
+    "billingAddress":"646362319186750032a80cc8",
     "paymentMethod": "COD",
-    "payment": "Paid",
-    "sellerDetails": "646727bed0fcb91934abd140",
+    "payment": "unpaid",
+    "sellerDetails": "6468bc8c9c52664290a76458",
     "voucher":"64660a84ab5c310032cabdc2"
 }
 ```
@@ -112,7 +118,10 @@ yarn dev
     "orderStatus":["pending","cancelled"],
     "payment":["Paid","Unpaid"]
 }
-
+#### get paginate data
+```http
+  POST localhost:3000/v1/order/get-order-data?page=1&limit=3
+```
 #### Get order by Id
 ```http
   POST localhost:3000/v1/order/get-order-data/:id
@@ -131,11 +140,6 @@ yarn dev
 ```http
   DELETE http://localhost:3000/v1/order/delete/:d
 ```
-#### Paginate order Table
-```http
-  GET localhost:3000/v1/order/paginate-order?page=1&pageSize=1
-```
-
 #### Search order with order Id
 ```http
   GET localhost:3000/v1/order/search-order
