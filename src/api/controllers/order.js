@@ -1,52 +1,50 @@
 const orderModel = require("../models/order.model");
-
 const { v4: uuidv4 } = require("uuid");
 
-// Generate an order ID
 function generateOrderID() {
   const uniqueID = uuidv4().split("-").join("").toUpperCase();
-
   const timestamp = Date.now().toString();
-
   const randomNumber = Math.floor(Math.random() * 100000)
     .toString()
     .padStart(5, "0");
-
   const orderID = `${uniqueID}${timestamp}${randomNumber}`.slice(0, 20);
-
   return orderID;
 }
 
 exports.createOrder = (req, res) => {
   try {
     const {
-      orderDate,
-      customerDetails,
-      totalProduct,
+      order_date,
+      order_status,
+      user_id,
+      total_product,
       amount,
-      orderItems,
-      shipingAddress,
-      paymentMethod,
+      order_items,
+      shiping_address,
+      billing_address,
+      payment_method,
       payment,
       voucher,
-      sellerDetails,
+      seller_details,
     } = req.body;
-    const orderId = generateOrderID();
+    const order_id = generateOrderID();
     const newOrder = new orderModel({
-      orderId,
-      orderDate,
-      customerDetails,
-      totalProduct,
+      order_id,
+      order_date,
+      order_status,
+      user_id,
+      total_product,
       amount,
-      orderItems,
-      shipingAddress,
-      paymentMethod,
+      order_items,
+      shiping_address,
+      billing_address,
+      payment_method,
       payment,
       voucher,
-      sellerDetails,
+      seller_details,
     });
     newOrder.save().then((data) => {
-      res.status(200).send({ msg: "Order placed", data: data });
+      res.status(200).send({ msg: successMessage, data: data });
     });
   } catch (error) {
     res.status(202).send({ error: error });
@@ -55,13 +53,13 @@ exports.createOrder = (req, res) => {
 
 exports.get_all_orders = (req, res) => {
   try {
-    const { orderStatus, payment } = req.body;
+    const { order_status, payment, sortOrder } = req.body; // Add sortOrder parameter
     const { page, limit } = req.query;
 
     const matchFilters = {};
 
-    if (orderStatus && orderStatus.length > 0) {
-      matchFilters.orderStatus = { $in: orderStatus };
+    if (order_status && order_status.length > 0) {
+      matchFilters.order_status = { $in: order_status };
     }
 
     if (payment && payment.length > 0) {
@@ -71,36 +69,45 @@ exports.get_all_orders = (req, res) => {
     const pageNumber = parseInt(page) || 1;
     const pageSize = parseInt(limit) || 10;
 
+    const sortOptions = {}; // Define an empty object to hold sort options
+
+    // Set the sort options based on sortOrder parameter
+    if (sortOrder === "asc") {
+      sortOptions.date = 1; // Sort by date in ascending order
+    } else if (sortOrder === "desc") {
+      sortOptions.date = -1; // Sort by date in descending order
+    }
+
     orderModel
       .aggregate([
         {
           $lookup: {
             from: "products",
-            localField: "orderItems",
+            localField: "order_items",
             foreignField: "_id",
-            as: "orderItems",
+            as: "order_items",
           },
         },
         {
           $lookup: {
             from: "user_addresses",
-            localField: "shippingAddress",
+            localField: "shiping_address",
             foreignField: "_id",
-            as: "shippingAddress",
+            as: "shiping_address",
           },
         },
         {
           $lookup: {
             from: "user_addresses",
-            localField: "billingAddress",
+            localField: "billing_address",
             foreignField: "_id",
-            as: "billingAddress",
+            as: "billing_address",
           },
         },
         {
           $lookup: {
             from: "sellers",
-            localField: "sellerDetails",
+            localField: "seller_details",
             foreignField: "_id",
             as: "seller_details",
           },
@@ -114,7 +121,35 @@ exports.get_all_orders = (req, res) => {
           },
         },
         {
+          $project: {
+            order_id: 1,
+            order_date: 1,
+            order_status: 1,
+            total_product: 1,
+            amount: 1,
+            payment: 1,
+            payment_method: 1,
+            "order_items._id": 1,
+            "order_items.product_external_id": 1,
+            "order_items.item_name": 1,
+            "order_items.list_price": 1,
+            "seller_details._id": 1,
+            "seller_details.fullname": 1,
+            "seller_details.email": 1,
+            shiping_address: 1,
+            billing_address: 1,
+            "voucher._id": 1,
+            "voucher.coupon_code": 1,
+          },
+        },
+        {
           $match: matchFilters,
+        },
+        {
+          $sort: {
+            amount: sortOrder === "asc" ? 1 : -1,
+            createdAt: sortOrder === "asc" ? 1 : -1,
+          },
         },
         {
           $skip: (pageNumber - 1) * pageSize,
@@ -124,10 +159,10 @@ exports.get_all_orders = (req, res) => {
         },
       ])
       .then((data) => {
-        res.status(200).send({ msg: "order details", data: data });
+        res.status(200).send({ msg: successMessage, data: data });
       });
   } catch (error) {
-    console.log(error);
+    console.log(error); // Console log
     res.status(500).send({ error: error });
   }
 };
@@ -146,32 +181,32 @@ exports.get_order_with_id = (req, res) => {
         },
         {
           $lookup: {
-            from: "users",
-            localField: "customerDetails",
-            foreignField: "_id",
-            as: "customer",
-          },
-        },
-        {
-          $lookup: {
             from: "products",
-            localField: "orderItems",
+            localField: "order_items",
             foreignField: "_id",
-            as: "orderItems",
+            as: "order_items",
           },
         },
         {
           $lookup: {
             from: "user_addresses",
-            localField: "shipingAddress",
+            localField: "shiping_address",
             foreignField: "_id",
-            as: "shippingAddress",
+            as: "shiping_address",
           },
         },
         {
           $lookup: {
-            from: "seller_auths",
-            localField: "sellerDetails",
+            from: "user_addresses",
+            localField: "billing_address",
+            foreignField: "_id",
+            as: "billing_address",
+          },
+        },
+        {
+          $lookup: {
+            from: "sellers",
+            localField: "seller_details",
             foreignField: "_id",
             as: "seller_details",
           },
@@ -184,12 +219,34 @@ exports.get_order_with_id = (req, res) => {
             as: "voucher",
           },
         },
+        {
+          $project: {
+            order_id: 1,
+            order_date: 1,
+            order_status: 1,
+            total_product: 1,
+            amount: 1,
+            payment: 1,
+            payment_method: 1,
+            "order_items._id": 1,
+            "order_items.product_external_id": 1,
+            "order_items.item_name": 1,
+            "order_items.list_price": 1,
+            "seller_details._id": 1,
+            "seller_details.fullname": 1,
+            "seller_details.email": 1,
+            shiping_address: 1,
+            billing_address: 1,
+            "voucher._id": 1,
+            "voucher.coupon_code": 1,
+          },
+        },
       ])
       .then((data) => {
-        res.status(200).send({ msg: "order details", data: data });
+
+        res.status(200).send({ msg: successMessage, data: data });
       });
   } catch (error) {
-    console.log(error);
     res.status(500).send({ error: error });
   }
 };
@@ -198,13 +255,16 @@ exports.delete_order = (req, res) => {
   try {
     const id = req.params.id;
     orderModel.findByIdAndDelete(id).then((data) => {
-      res.status(202).send({ msg: "order data deleted succesfully" });
+      const successMessage = "Order data deleted successfully";
+      logger.info(successMessage);
+      console.log(successMessage); // Console log
+
+      res.status(202).send({ msg: successMessage });
     });
   } catch (error) {
     res.status(500).send({ error: error });
   }
 };
-
 
 exports.search_Order = async (req, res) => {
   try {
@@ -216,8 +276,8 @@ exports.search_Order = async (req, res) => {
               {
                 $or: [
                   {
-                    orderId: {
-                      $regex: req.body.orderId,
+                    order_id: {
+                      $regex: req.body.order_id,
                     },
                   },
                 ],
@@ -235,16 +295,18 @@ exports.search_Order = async (req, res) => {
       ])
       .then((data) => {
         console.log("data", data);
-        return res.status(200).json({
+        res.status(200).json({
           status: true,
-          message: "Order search Sucessfully",
+          message: successMessage,
           data: data,
         });
       });
   } catch (error) {
+    console.log(error); // Console log
+
     res.status(500).json({
       status: false,
-      message: "Invalid id. Server error.",
+      message: errorMessage,
       error: error,
     });
   }
