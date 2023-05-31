@@ -53,7 +53,7 @@ exports.createOrder = (req, res) => {
 
 exports.get_all_orders = (req, res) => {
   try {
-    const { order_status, payment, sortOrder } = req.body; // Add sortOrder parameter
+    const { order_status, payment, sort_amount, sort_date } = req.body;
     const { page, limit } = req.query;
 
     const matchFilters = {};
@@ -69,14 +69,14 @@ exports.get_all_orders = (req, res) => {
     const pageNumber = parseInt(page) || 1;
     const pageSize = parseInt(limit) || 10;
 
-    const sortOptions = {}; // Define an empty object to hold sort options
+    const sortOptions = {};
 
-    // Set the sort options based on sortOrder parameter
-    if (sortOrder === "asc") {
-      sortOptions.date = 1; // Sort by date in ascending order
-    } else if (sortOrder === "desc") {
-      sortOptions.date = -1; // Sort by date in descending order
+    if (sort_amount) {
+      sortOptions.amount = sort_amount === "asc" ? 1 : -1;
     }
+
+    let dateSortField = "order_date";
+    let dateSortOrder = sort_date === "asc" ? 1 : -1;
 
     orderModel
       .aggregate([
@@ -91,9 +91,9 @@ exports.get_all_orders = (req, res) => {
         {
           $lookup: {
             from: "user_addresses",
-            localField: "shiping_address",
+            localField: "shipping_address",
             foreignField: "_id",
-            as: "shiping_address",
+            as: "shipping_address",
           },
         },
         {
@@ -137,7 +137,7 @@ exports.get_all_orders = (req, res) => {
             "seller_details._id": 1,
             "seller_details.fullname": 1,
             "seller_details.email": 1,
-            shiping_address: 1,
+            shipping_address: 1,
             billing_address: 1,
             "voucher._id": 1,
             "voucher.coupon_code": 1,
@@ -148,8 +148,8 @@ exports.get_all_orders = (req, res) => {
         },
         {
           $sort: {
-            amount: sortOrder === "asc" ? 1 : -1,
-            createdAt: sortOrder === "asc" ? 1 : -1,
+            [dateSortField]: dateSortOrder,
+            ...sortOptions,
           },
         },
         {
@@ -159,14 +159,23 @@ exports.get_all_orders = (req, res) => {
           $limit: pageSize,
         },
       ])
+      .exec()
       .then((data) => {
-        res.status(200).send({ data: data });
+        const successMessage = "Retrieved all orders";
+        logger.info(successMessage);
+        console.log(successMessage); // Console log
+
+        res.status(200).send({ msg: successMessage, data: data });
       });
   } catch (error) {
-    console.log(error); // Console log
+    const errorMessage = "Unable to get orders";
+    logger.error(errorMessage, error);
+    console.log(errorMessage, error); // Console log
+
     res.status(500).send({ error: error });
   }
 };
+
 
 exports.get_order_with_id = (req, res) => {
   try {
@@ -191,9 +200,9 @@ exports.get_order_with_id = (req, res) => {
         {
           $lookup: {
             from: "user_addresses",
-            localField: "shiping_address",
+            localField: "shipping_address",
             foreignField: "_id",
-            as: "shiping_address",
+            as: "shipping_address",
           },
         },
         {
@@ -237,7 +246,7 @@ exports.get_order_with_id = (req, res) => {
             "seller_details._id": 1,
             "seller_details.fullname": 1,
             "seller_details.email": 1,
-            shiping_address: 1,
+            shipping_address: 1,
             billing_address: 1,
             "voucher._id": 1,
             "voucher.coupon_code": 1,
@@ -245,10 +254,17 @@ exports.get_order_with_id = (req, res) => {
         },
       ])
       .then((data) => {
+        const successMessage = "Retrieved order by ID";
+        logger.info(successMessage);
+        console.log(successMessage); // Console log
 
-        res.status(200).send({ data: data });
+        res.status(200).send({ msg: successMessage, data: data });
       });
   } catch (error) {
+    const errorMessage = "Unable to get order by ID";
+    logger.error(errorMessage, error);
+    console.log(errorMessage, error); // Console log
+
     res.status(500).send({ error: error });
   }
 };
