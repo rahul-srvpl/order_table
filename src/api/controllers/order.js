@@ -44,7 +44,7 @@ exports.createOrder = (req, res) => {
       seller_details,
     });
     newOrder.save().then((data) => {
-      res.status(200).send({ msg: successMessage, data: data });
+      res.status(200).send({ data: data });
     });
   } catch (error) {
     res.status(202).send({ error: error });
@@ -159,7 +159,7 @@ exports.get_all_orders = (req, res) => {
         },
       ])
       .then((data) => {
-        res.status(200).send({ msg: successMessage, data: data });
+        res.status(200).send({ data: data });
       });
   } catch (error) {
     console.log(error); // Console log
@@ -244,7 +244,7 @@ exports.get_order_with_id = (req, res) => {
       ])
       .then((data) => {
 
-        res.status(200).send({ msg: successMessage, data: data });
+        res.status(200).send({ data: data });
       });
   } catch (error) {
     res.status(500).send({ error: error });
@@ -259,7 +259,7 @@ exports.delete_order = (req, res) => {
       logger.info(successMessage);
       console.log(successMessage); // Console log
 
-      res.status(202).send({ msg: successMessage });
+      res.status(202).send({ msg:"deleted succesfully" });
     });
   } catch (error) {
     res.status(500).send({ error: error });
@@ -297,7 +297,6 @@ exports.search_Order = async (req, res) => {
         console.log("data", data);
         res.status(200).json({
           status: true,
-          message: successMessage,
           data: data,
         });
       });
@@ -306,7 +305,6 @@ exports.search_Order = async (req, res) => {
 
     res.status(500).json({
       status: false,
-      message: errorMessage,
       error: error,
     });
   }
