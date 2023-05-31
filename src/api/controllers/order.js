@@ -161,7 +161,7 @@ exports.get_all_orders = (req, res) => {
       ])
       .exec()
       .then((data) => {
-        res.status(200).send({ msg: successMessage, data: data });
+        res.status(200).send({ data: data });
       });
   } catch (error) {
     console.log(error); // Console log
@@ -248,7 +248,7 @@ exports.get_order_with_id = (req, res) => {
         },
       ])
       .then((data) => {
-        res.status(200).send({ msg: successMessage, data: data });
+        res.status(200).send({ data: data });
       });
   } catch (error) {
     res.status(500).send({ error: error });
