@@ -161,16 +161,10 @@ exports.get_all_orders = (req, res) => {
       ])
       .exec()
       .then((data) => {
-        const successMessage = "Retrieved all orders";
-        logger.info(successMessage);
-        console.log(successMessage); // Console log
-
         res.status(200).send({ msg: successMessage, data: data });
       });
   } catch (error) {
-    const errorMessage = "Unable to get orders";
-    logger.error(errorMessage, error);
-    console.log(errorMessage, error); // Console log
+    console.log(error); // Console log
 
     res.status(500).send({ error: error });
   }
@@ -254,17 +248,9 @@ exports.get_order_with_id = (req, res) => {
         },
       ])
       .then((data) => {
-        const successMessage = "Retrieved order by ID";
-        logger.info(successMessage);
-        console.log(successMessage); // Console log
-
         res.status(200).send({ msg: successMessage, data: data });
       });
   } catch (error) {
-    const errorMessage = "Unable to get order by ID";
-    logger.error(errorMessage, error);
-    console.log(errorMessage, error); // Console log
-
     res.status(500).send({ error: error });
   }
 };
@@ -273,10 +259,6 @@ exports.delete_order = (req, res) => {
   try {
     const id = req.params.id;
     orderModel.findByIdAndDelete(id).then((data) => {
-      const successMessage = "Order data deleted successfully";
-      logger.info(successMessage);
-      console.log(successMessage); // Console log
-
       res.status(202).send({ msg:"deleted succesfully" });
     });
   } catch (error) {
