@@ -22,7 +22,7 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "products",
     },
-    shiping_address: {
+    shipping_address: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user_addresses",
     },
