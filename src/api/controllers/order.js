@@ -69,15 +69,6 @@ exports.get_all_orders = (req, res) => {
     const pageNumber = parseInt(page) || 1;
     const pageSize = parseInt(limit) || 10;
 
-    const sortOptions = {};
-
-    if (sort_amount) {
-      sortOptions.amount = sort_amount === "asc" ? 1 : -1;
-    }
-
-    let dateSortField = "order_date";
-    let dateSortOrder = sort_date === "asc" ? 1 : -1;
-
     orderModel
       .aggregate([
         {
@@ -123,7 +114,7 @@ exports.get_all_orders = (req, res) => {
         {
           $project: {
             order_id: 1,
-            order_date: 1,
+            order_date: { $toDate: "$order_date" },
             order_status: 1,
             total_product: 1,
             amount: 1,
@@ -148,8 +139,8 @@ exports.get_all_orders = (req, res) => {
         },
         {
           $sort: {
-            [dateSortField]: dateSortOrder,
-            ...sortOptions,
+            amount: sort_amount === "asc" ? 1 : -1,
+            order_date: sort_date === "asc" ? 1 : -1,
           },
         },
         {
@@ -164,7 +155,6 @@ exports.get_all_orders = (req, res) => {
         res.status(200).send({ data: data });
       });
   } catch (error) {
-    console.log(error); // Console log
 
     res.status(500).send({ error: error });
   }
