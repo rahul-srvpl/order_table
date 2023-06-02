@@ -161,7 +161,7 @@ exports.get_all_orders = (req, res) => {
     orderModel.aggregate(aggregatePipeline)
       .exec()
       .then((data) => {
-        res.status(200).send({ msg: successMessage, data: data });
+        res.status(200).send({ data: data });
       });
   } catch (error) {
     res.status(500).send({ error: errorMessage });
