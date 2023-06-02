@@ -68,7 +68,7 @@ exports.get_all_orders = (req, res) => {
 
     const pageNumber = parseInt(page) || 1;
     const pageSize = parseInt(limit) || 10;
-    
+
     const sortCriteria = {};
 
     if (sort_amount) {
@@ -79,7 +79,7 @@ exports.get_all_orders = (req, res) => {
       sortCriteria.order_date = sort_date === "asc" ? 1 : -1;
     }
 
-const aggregatePipeline = [
+    const aggregatePipeline = [
       {
         $lookup: {
           from: "products",
@@ -157,15 +157,14 @@ const aggregatePipeline = [
     if (Object.keys(sortCriteria).length > 0) {
       aggregatePipeline.unshift({ $sort: sortCriteria });
     }
-    
+
     orderModel.aggregate(aggregatePipeline)
       .exec()
       .then((data) => {
-        res.status(200).send({ data: data });
+        res.status(200).send({ msg: successMessage, data: data });
       });
   } catch (error) {
-
-    res.status(500).send({ error: error });
+    res.status(500).send({ error: errorMessage });
   }
 };
 
