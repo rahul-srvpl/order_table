@@ -156,6 +156,9 @@ exports.get_all_orders = (req, res) => {
         {
           $limit: pageSize,
         },
+       if (Object.keys(sortCriteria).length > 0) {
+       aggregatePipeline.unshift({ $sort: sortCriteria });
+    }
       ])
       .exec()
       .then((data) => {
