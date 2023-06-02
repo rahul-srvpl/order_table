@@ -68,6 +68,16 @@ exports.get_all_orders = (req, res) => {
 
     const pageNumber = parseInt(page) || 1;
     const pageSize = parseInt(limit) || 10;
+    
+    const sortCriteria = {};
+
+    if (sort_amount) {
+      sortCriteria.amount = sort_amount === "asc" ? 1 : -1;
+    }
+
+    if (sort_date) {
+      sortCriteria.order_date = sort_date === "asc" ? 1 : -1;
+    }
 
     orderModel
       .aggregate([
@@ -138,10 +148,7 @@ exports.get_all_orders = (req, res) => {
           $match: matchFilters,
         },
         {
-          $sort: {
-            amount: sort_amount === "asc" ? 1 : -1,
-            order_date: sort_date === "asc" ? 1 : -1,
-          },
+          $sort: sortCriteria,
         },
         {
           $skip: (pageNumber - 1) * pageSize,
