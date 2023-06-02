@@ -79,87 +79,86 @@ exports.get_all_orders = (req, res) => {
       sortCriteria.order_date = sort_date === "asc" ? 1 : -1;
     }
 
-    orderModel
-      .aggregate([
-        {
-          $lookup: {
-            from: "products",
-            localField: "order_items",
-            foreignField: "_id",
-            as: "order_items",
-          },
+const aggregatePipeline = [
+      {
+        $lookup: {
+          from: "products",
+          localField: "order_items",
+          foreignField: "_id",
+          as: "order_items",
         },
-        {
-          $lookup: {
-            from: "user_addresses",
-            localField: "shipping_address",
-            foreignField: "_id",
-            as: "shipping_address",
-          },
+      },
+      {
+        $lookup: {
+          from: "user_addresses",
+          localField: "shipping_address",
+          foreignField: "_id",
+          as: "shipping_address",
         },
-        {
-          $lookup: {
-            from: "user_addresses",
-            localField: "billing_address",
-            foreignField: "_id",
-            as: "billing_address",
-          },
+      },
+      {
+        $lookup: {
+          from: "user_addresses",
+          localField: "billing_address",
+          foreignField: "_id",
+          as: "billing_address",
         },
-        {
-          $lookup: {
-            from: "sellers",
-            localField: "seller_details",
-            foreignField: "_id",
-            as: "seller_details",
-          },
+      },
+      {
+        $lookup: {
+          from: "sellers",
+          localField: "seller_details",
+          foreignField: "_id",
+          as: "seller_details",
         },
-        {
-          $lookup: {
-            from: "coupons",
-            localField: "voucher",
-            foreignField: "_id",
-            as: "voucher",
-          },
+      },
+      {
+        $lookup: {
+          from: "coupons",
+          localField: "voucher",
+          foreignField: "_id",
+          as: "voucher",
         },
-        {
-          $project: {
-            order_id: 1,
-            order_date: { $toDate: "$order_date" },
-            order_status: 1,
-            total_product: 1,
-            amount: 1,
-            payment: 1,
-            payment_method: 1,
-            createdAt: 1,
-            "order_items._id": 1,
-            "order_items.product_external_id": 1,
-            "order_items.item_name": 1,
-            "order_items.list_price": 1,
-            "seller_details._id": 1,
-            "seller_details.fullname": 1,
-            "seller_details.email": 1,
-            shipping_address: 1,
-            billing_address: 1,
-            "voucher._id": 1,
-            "voucher.coupon_code": 1,
-          },
+      },
+      {
+        $project: {
+          order_id: 1,
+          order_date: 1,
+          order_status: 1,
+          total_product: 1,
+          amount: 1,
+          payment: 1,
+          payment_method: 1,
+          createdAt: 1,
+          "order_items._id": 1,
+          "order_items.product_external_id": 1,
+          "order_items.item_name": 1,
+          "order_items.list_price": 1,
+          "seller_details._id": 1,
+          "seller_details.fullname": 1,
+          "seller_details.email": 1,
+          shipping_address: 1,
+          billing_address: 1,
+          "voucher._id": 1,
+          "voucher.coupon_code": 1,
         },
-        {
-          $match: matchFilters,
-        },
-        {
-          $sort: sortCriteria,
-        },
-        {
-          $skip: (pageNumber - 1) * pageSize,
-        },
-        {
-          $limit: pageSize,
-        },
-       if (Object.keys(sortCriteria).length > 0) {
-       aggregatePipeline.unshift({ $sort: sortCriteria });
+      },
+      {
+        $match: matchFilters,
+      },
+      {
+        $skip: (pageNumber - 1) * pageSize,
+      },
+      {
+        $limit: pageSize,
+      },
+    ];
+
+    if (Object.keys(sortCriteria).length > 0) {
+      aggregatePipeline.unshift({ $sort: sortCriteria });
     }
-      ])
+    
+    orderModel.aggregate(aggregatePipeline)
       .exec()
       .then((data) => {
         res.status(200).send({ data: data });
